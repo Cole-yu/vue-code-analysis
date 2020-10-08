@@ -43,18 +43,18 @@ export function initMixin (Vue: Class<Component>) {
     }
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
-      initProxy(vm)
+      initProxy(vm) // 里面有 vm._renderProxy的初始化
     } else {
       vm._renderProxy = vm
     }
     // expose real self
     vm._self = vm
     initLifecycle(vm)
-    initEvents(vm)
-    initRender(vm)
-    callHook(vm, 'beforeCreate')
+    initEvents(vm) // 将父组件模板中注册的事件放到当前组件实例的listeners里面
+    initRender(vm)// 为组件实例初始化一些渲染属性，比如```$slots```和```$createElement```等。
+    callHook(vm, 'beforeCreate') // 触发之前```options```中定义的beforeCreate生命周期函数
     initInjections(vm) // resolve injections before data/props
-    initState(vm)
+    initState(vm) // resolve props, methods, data, computed, watch
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
 
@@ -66,7 +66,10 @@ export function initMixin (Vue: Class<Component>) {
     }
 
     if (vm.$options.el) {
-      vm.$mount(vm.$options.el)
+      // src/platforms/web/entry-runtime-with-compiler.js
+      // const mount = Vue.prototype.$mount // 先缓存之前的 $mount 方法
+      // Vue.prototype.$mount = function (el, hydrating){ return mount.call(this, el, hydrating) }
+      vm.$mount(vm.$options.el) // _init -> mount -> mountComponent -> vm._update -> vm.__patch__ -> patch -> createPathFunction
     }
   }
 }
@@ -92,9 +95,10 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 
 export function resolveConstructorOptions (Ctor: Class<Component>) {
   let options = Ctor.options
-  if (Ctor.super) {
-    const superOptions = resolveConstructorOptions(Ctor.super)
-    const cachedSuperOptions = Ctor.superOptions
+  if (Ctor.super) { // super = 父类的构造函数 e.constructor === instance.__proto__.constructor 。
+    const superOptions = resolveConstructorOptions(Ctor.super) // 向上递归调用，传入父类的构造函数
+    const cachedSuperOptions = Ctor.superOptions // 子类中存储的父类的options
+     // 当为Vue混入一些options时，```superOptions```会发生变化，此时于之前子类中存储的```cachedSuperOptions```已经不等，所以下面的操作主要就是更新```sub.superOptions```
     if (superOptions !== cachedSuperOptions) {
       // super option changed,
       // need to resolve new options.

@@ -31,7 +31,7 @@ extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
 // install platform patch function
-Vue.prototype.__patch__ = inBrowser ? patch : noop
+Vue.prototype.__patch__ = inBrowser ? patch : noop // 将虚拟节点```VNode```转成真实的node节点。实现过程主要是通过```vm.$el = vm.__patch__(prevVnode, vnode);```
 
 // public mount method
 Vue.prototype.$mount = function (

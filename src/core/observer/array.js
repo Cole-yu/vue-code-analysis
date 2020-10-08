@@ -26,7 +26,7 @@ methodsToPatch.forEach(function (method) {
   const original = arrayProto[method]
   def(arrayMethods, method, function mutator (...args) {
     const result = original.apply(this, args)
-    const ob = this.__ob__
+    const ob = this.__ob__ // ob 是 Observer实例对象
     let inserted
     switch (method) {
       case 'push':
@@ -37,7 +37,7 @@ methodsToPatch.forEach(function (method) {
         inserted = args.slice(2)
         break
     }
-    if (inserted) ob.observeArray(inserted)
+    if (inserted) ob.observeArray(inserted) // 监控数组的push，unshift， splice 方法，对方法中的参数对象也进行监控
     // notify change
     ob.dep.notify()
     return result

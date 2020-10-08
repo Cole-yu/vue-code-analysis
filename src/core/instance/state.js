@@ -195,7 +195,7 @@ function initComputed (vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
-    if (!(key in vm)) {
+    if (!(key in vm)) { // 判断key 是否已经是 vm实例或原型链上的属性
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
       if (key in vm.$data) {
@@ -290,7 +290,7 @@ function initMethods (vm: Component, methods: Object) {
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
-    if (Array.isArray(handler)) {
+    if (Array.isArray(handler)) { // 你可以传入回调数组，它们会被逐一调用 watch:{a:['method1', function(val, oldVal){ ... }, {handle: function(val, oldVal){ ... }}]}
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
       }

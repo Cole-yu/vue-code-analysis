@@ -20,20 +20,25 @@ export default class Dep {
     this.subs = []
   }
 
+  // 消息盒子提供添加功能（面向对象程序设计思想）
   addSub (sub: Watcher) {
     this.subs.push(sub)
   }
 
+  // 消息盒子提供删除功能（面向对象程序设计思想）
   removeSub (sub: Watcher) {
     remove(this.subs, sub)
   }
 
   depend () {
-    if (Dep.target) {
-      Dep.target.addDep(this)
+    if (Dep.target) { // Dep.target = watcher实例，是否存在watcher
+      // Dep.target 会触发watcher实例的get属性（Object.defineProperty),执行pushTarget(this)，实现Dep.target = target = watcher实例
+      // Dep.target.addDep(this) = watcher实例.addDep(this)
+      Dep.target.addDep(this) // watcher.addDep(this) 执行效果 dep.addSub(this)，最终结果就是向this.subs中添加一个watcher实例
     }
   }
 
+  // 发布-订阅方式
   notify () {
     // stabilize the subscriber list first
     const subs = this.subs.slice()
@@ -44,7 +49,7 @@ export default class Dep {
       subs.sort((a, b) => a.id - b.id)
     }
     for (let i = 0, l = subs.length; i < l; i++) {
-      subs[i].update()
+      subs[i].update() // 依赖收集容器里的watcher实例都会通知一遍
     }
   }
 }

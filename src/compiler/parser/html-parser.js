@@ -192,6 +192,7 @@ export function parseHTML (html, options) {
         attrs: [],
         start: index
       }
+      // 通过不断地蚕食掉html字符串，一步步完成对他的解析过程
       advance(start[0].length)
       let end, attr
       while (!(end = html.match(startTagClose)) && (attr = html.match(dynamicArgAttribute) || html.match(attribute))) {
@@ -248,7 +249,8 @@ export function parseHTML (html, options) {
     }
 
     if (options.start) {
-      options.start(tagName, attrs, unary, match.start, match.end)
+      options.start(tagName, attrs, unary, match.start, match.end) // 调用 parseHTML(html, options} 中options对象内的start属性，其中start属性定义的是一个方法
+      // 在start方法中执行了createASTElement方法，该方法将创建一个新的 AST 对象:
     }
   }
 

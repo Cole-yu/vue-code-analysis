@@ -15,7 +15,7 @@ export function initEvents (vm: Component) {
   // init parent attached events
   const listeners = vm.$options._parentListeners
   if (listeners) {
-    updateComponentListeners(vm, listeners)
+    updateComponentListeners(vm, listeners) // vm._events表示的是父组件绑定在当前组件上的事件
   }
 }
 
@@ -71,7 +71,7 @@ export function eventsMixin (Vue: Class<Component>) {
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
     function on () {
-      vm.$off(event, on)
+      vm.$off(event, on) // 先移除事件监听，之后的事件没有了回调方法
       fn.apply(vm, arguments)
     }
     on.fn = fn

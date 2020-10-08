@@ -80,7 +80,7 @@ describe('create-element', () => {
     expect(vnode.context).toEqual(vm)
   })
 
-  it('render vnode with createElement with children', () => {
+  it('render vnode with renderStaticwith children', () => {
     const vm = new Vue({})
     const h = vm.$createElement
     const vnode = h('p', void 0, [h('br'), 'hello world', h('br')])

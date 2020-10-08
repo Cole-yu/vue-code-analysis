@@ -221,7 +221,7 @@ export function parse (
         attrs = guardIESVGBug(attrs)
       }
 
-      let element: ASTElement = createASTElement(tag, attrs, currentParent)
+      let element: ASTElement = createASTElement(tag, attrs, currentParent) // 定义了一个新的 AST 对象:
       if (ns) {
         element.ns = ns
       }

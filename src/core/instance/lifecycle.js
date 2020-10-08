@@ -55,6 +55,7 @@ export function initLifecycle (vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+// _init -> mount -> mountComponent -> vm._update -> vm.__patch__ -> patch -> createPathFunction
 export function lifecycleMixin (Vue: Class<Component>) {
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
@@ -65,11 +66,11 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // initial render
-      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */)
+      // initial render 位于 src/platforms/web/runtime/index.js
+      vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */) // 将虚拟节点```VNode```转成真实的node节点。实现过程主要是通过```vm.$el = vm.__patch__(prevVnode, vnode);```
     } else {
       // updates
-      vm.$el = vm.__patch__(prevVnode, vnode)
+      vm.$el = vm.__patch__(prevVnode, vnode) 
     }
     restoreActiveInstance()
     // update __vue__ reference
@@ -187,20 +188,23 @@ export function mountComponent (
     }
   } else {
     updateComponent = () => {
-      vm._update(vm._render(), hydrating)
+      vm._update(vm._render(), hydrating) // Vue.prototype._render 定义在src/core/instance/render.js中，返回vnode
     }
   }
 
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
-  // component's mounted hook), which relies on vm._watcher being already defined
+  // component's mounted hook), which relies on vm._watcher being already defined  
+  // 会触发我们定义的```Watcher```里面的```get```方法。同时设置了```Dep.target = watcher```。get 方法会去执行传入的```updateComponent```
+  // 方法，也就是说会去做```template --> AST --> render Function --> VNode --> patch Dom```这样一个流程。这个过程中，会去读取我们绑定的数据。由于之前我们通过```observer```进行了数据劫持，这样会触发数据的```get```方法。此时会将```watcher```添加到
+  // 对应的```dep```中。当有数据更新时，通过```dep.notify()```去通知到```watcher```，然后执行```watcher```中的```update```方法。此时又会去重新执行```get updateComponent```，至此完成对视图的重新渲染。
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
         callHook(vm, 'beforeUpdate')
       }
     }
-  }, true /* isRenderWatcher */)
+  }/* options */, true /* isRenderWatcher */)
   hydrating = false
 
   // manually mounted instance, call mounted on self
@@ -333,6 +337,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
@@ -340,10 +345,20 @@ export function callHook (vm: Component, hook: string) {
   const info = `${hook} hook`
   if (handlers) {
     for (let i = 0, j = handlers.length; i < j; i++) {
+      // 早前版本的写法
+      // try {
+      //   handlers[i].call(vm)
+      // } catch (e) {
+      //   handleError(e, vm, `${hook} hook`)
+      // }
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
-  if (vm._hasHookEvent) {
+
+  // 当前实例的钩子函数如果是通过父组件的:hook方式来指定的，那么它在执行钩子函数的回调方法时就是直接触发vm.$emit来执行
+  // 示例：<child @hook:created="hookFromParent" />
+  // Vue.prototype.$on中把事件和回调方法传入到_events对象中。
+  if (vm._hasHookEvent) { // 表示父组件有没有直接绑定钩子函数在当前组件上。
     vm.$emit('hook:' + hook)
   }
   popTarget()

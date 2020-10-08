@@ -103,7 +103,7 @@ export default class Watcher {
     let value
     const vm = this.vm
     try {
-      value = this.getter.call(vm, vm)
+      value = this.getter.call(vm, vm) // Watcher实例时传入的updateComponent方法被调用执行
     } catch (e) {
       if (this.user) {
         handleError(e, vm, `getter for watcher "${this.expression}"`)
@@ -123,7 +123,8 @@ export default class Watcher {
   }
 
   /**
-   * Add a dependency to this directive.
+   * Add a dependency to this directive. 
+   * 把自身watcher实例收集进依赖中，this.subs
    */
   addDep (dep: Dep) {
     const id = dep.id
@@ -131,7 +132,7 @@ export default class Watcher {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
       if (!this.depIds.has(id)) {
-        dep.addSub(this)
+        dep.addSub(this) // 调用Dep实例对象的添加方法
       }
     }
   }

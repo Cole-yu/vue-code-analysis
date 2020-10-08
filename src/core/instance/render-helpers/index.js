@@ -12,6 +12,9 @@ import { bindObjectListeners } from './bind-object-listeners'
 import { resolveScopedSlots } from './resolve-scoped-slots'
 import { bindDynamicKeys, prependModifier } from './bind-dynamic-keys'
 
+// 安装渲染函数的简单缩写工具
+// ```Vue.prototype._c，Vue.prototype._m，Vue.prototype._v，Vue.prototype._s ```这几个函数的定义
+// 其中 _c 是 ```createElement```，_m 是 ```renderStatic```，_v 是 ```createTextVNode```，_s 是 ```toString```。
 export function installRenderHelpers (target: any) {
   target._o = markOnce
   target._n = toNumber

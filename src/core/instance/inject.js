@@ -41,7 +41,7 @@ export function resolveInject (inject: any, vm: Component): ?Object {
     // inject is :any because flow is not smart enough to figure out cached
     const result = Object.create(null)
     const keys = hasSymbol
-      ? Reflect.ownKeys(inject)
+      ? Reflect.ownKeys(inject) // Object.keys() 不受enumerable影响 === Object.getOwnPropertyNames(target).concat(Object.getOwnPropertySymbols(target))。
       : Object.keys(inject)
 
     for (let i = 0; i < keys.length; i++) {

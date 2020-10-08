@@ -60,6 +60,9 @@ export function setCurrentRenderingInstance (vm: Component) {
 
 export function renderMixin (Vue: Class<Component>) {
   // install runtime convenience helpers
+  // 安装渲染函数的简单缩写工具
+  // ```Vue.prototype._c，Vue.prototype._m，Vue.prototype._v，Vue.prototype._s ```这几个函数的定义
+  // 其中 _c 是 ```createElement```，_m 是 ```renderStatic```，_v 是 ```createTextVNode```，_s 是 ```toString```。
   installRenderHelpers(Vue.prototype)
 
   Vue.prototype.$nextTick = function (fn: Function) {
@@ -88,7 +91,11 @@ export function renderMixin (Vue: Class<Component>) {
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
       currentRenderingInstance = vm
-      vnode = render.call(vm._renderProxy, vm.$createElement)
+      // vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true) L:34
+      // 在vm._render()执行过程中，执行vm._renderProxy
+      // vm._renderProxy中，这个watcher会作为依赖被添加到vm的data中去，
+      // 如果data发生变化，就会通知这个watcher重新执行vm._update(vm._render(), hydrating)。这样整个响应式系统就完全建立起来了
+      vnode = render.call(vm._renderProxy, vm.$createElement) // vm._renderProxy = new Proxy(vm, handlers)  src/core/instance/proxy 中的 initProxy方法
     } catch (e) {
       handleError(e, vm, `render`)
       // return error render result,
@@ -96,7 +103,7 @@ export function renderMixin (Vue: Class<Component>) {
       /* istanbul ignore else */
       if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
         try {
-          vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e)
+          vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e) 
         } catch (e) {
           handleError(e, vm, `renderError`)
           vnode = vm._vnode

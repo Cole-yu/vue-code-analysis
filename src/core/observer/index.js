@@ -44,8 +44,8 @@ export class Observer {
     this.dep = new Dep()
     this.vmCount = 0
     def(value, '__ob__', this)
-    if (Array.isArray(value)) {
-      if (hasProto) {
+    if (Array.isArray(value)) { // 实现vue拦截数组变异的方法，数组内容变化的dom更新机制
+      if (hasProto) {// hasProto = '__proto__' in {}
         protoAugment(value, arrayMethods)
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
@@ -153,13 +153,15 @@ export function defineReactive (
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val) // 是否只浅遍历标记（不深度遍历子属性变化）
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
-      const value = getter ? getter.call(obj) : val
-      if (Dep.target) {
+      const value = getter ? getter.call(obj) : val // Object.getOwnPropertyDescriptor(obj, key).get.call(obj)
+      // Dep.target = watcher实例
+      if (Dep.target) {// 当数据的getter触发后，会收集依赖，但也不是所有的触发方式都会收集依赖，只有通过watcher触发的getter会收集依赖
+        // Watcher在实例化时会执行get方法，执行pushTarget(this)，实现Dep.target = target = watcher实例
         dep.depend()
         if (childOb) {
           childOb.dep.depend()
@@ -188,7 +190,7 @@ export function defineReactive (
         val = newVal
       }
       childOb = !shallow && observe(newVal)
-      dep.notify()
+      dep.notify()// 当更新的时候,调用消息容器实例的通知方法
     }
   })
 }

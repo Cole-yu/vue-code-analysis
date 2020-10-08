@@ -14,7 +14,7 @@ const idToTemplate = cached(id => {
   return el && el.innerHTML
 })
 
-const mount = Vue.prototype.$mount
+const mount = Vue.prototype.$mount // 先缓存之前在entry-runtime中定义的 $mount 方法，在Vue.prototype.$mount扩展编译器compileToFunctions
 Vue.prototype.$mount = function (
   el?: string | Element,
   hydrating?: boolean
@@ -31,6 +31,7 @@ Vue.prototype.$mount = function (
 
   const options = this.$options
   // resolve template/el and convert to render function
+  // 使用者如果自己写了render函数，那就不走编译环节
   if (!options.render) {
     let template = options.template
     if (template) {
@@ -62,7 +63,13 @@ Vue.prototype.$mount = function (
         mark('compile')
       }
 
-      const { render, staticRenderFns } = compileToFunctions(template, {
+      // 涉及到编译器源码实现，对模板进行句法分析，词法分析等
+      // 将vue初始过程和编译器链接起来的关键地方
+      // createCompiler(baseOptions) = {compile, compileToFunctions: createCompileToFunctionFn(compile)}
+      // compileToFunctions = createCompileToFunctionFn(compile) = compileToFunctions(template, options)
+      // compileToFunctions(template, options) = return (cache[key] = res) = { render:... , staticRenderFns:...}
+      // 等同于 const { render, staticRenderFns } = compileToFunctions(template, options) = createCompileToFunctionFn(compile)      
+      const { render, staticRenderFns } = compileToFunctions(template, { 
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,
         shouldDecodeNewlinesForHref,
