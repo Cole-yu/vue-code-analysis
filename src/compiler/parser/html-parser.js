@@ -147,6 +147,23 @@ export function parseHTML (html, options) {
       let endTagLength = 0
       const stackedTag = lastTag.toLowerCase()
       const reStackedTag = reCache[stackedTag] || (reCache[stackedTag] = new RegExp('([\\s\\S]*?)(</' + stackedTag + '[^>]*>)', 'i'))
+      /**
+       * 该方法执行了3次
+       * function replacer(match, p1, p2, offset, string) {
+            console.log('match', match); // 111- 222- 333-
+            console.log('p1', p1); /// 111 222 333
+            console.log('p2', p2); /// - - -
+            console.log('offset', offset); // 0 5 10
+            console.log('string', string); // 111-%222-%333-%444 111-%222-%333-%444 111-%222-%333-%444
+            return 'aa-'+p1+'-aa';
+          }
+       * var newString = "111-%222-%333-%444".replace(/(\d{3,})-/g, replacer);
+       * console.log(newString) // aa-111-aa%aa-222-aa%aa-333-aa%444
+       * match   /(\d{3,})-/ 模式匹配上的子串
+       * p1,p2,...  模式中第n个括号匹配的字符串 p1是(\d{3,})匹配出来的，p2是-
+       * offset  每次匹配到的子字符串在原字符串中的偏移量
+       * string  被匹配的原字符串，即html值
+       */
       const rest = html.replace(reStackedTag, function (all, text, endTag) {
         endTagLength = endTag.length
         if (!isPlainTextElement(stackedTag) && stackedTag !== 'noscript') {
